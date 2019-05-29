@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
         if (filename.substr(found) == ".in")
             filename = filename.substr(0, found);
         else {
-            // The input file name must has an extension of 'dat'
+            // The input file name must has an extension of 'in'
             cout << "*** Error *** Invalid file extension: "
                  << filename.substr(found+1) << endl;
             exit(1);

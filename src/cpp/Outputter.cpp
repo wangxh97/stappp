@@ -321,6 +321,20 @@ void COutputter::OutputElementStress()
 		unsigned int NUME = EleGrp.GetNUME();
 		ElementTypes ElementType = EleGrp.GetElementType();
 
+		CDomain* FEMData = CDomain::Instance();
+		int NUMNP = FEMData->GetNUMNP();
+
+		double **STRESS;
+		STRESS = new double *[NUMNP];
+		for (int i = 0; i < NUMNP; i++)
+		{
+			STRESS[i] = new double[6];
+			memset(STRESS[i], 0, 6 * sizeof(double));
+		}
+
+		int *count = new int[NUMNP];
+		memset(count, 0, NUMNP * sizeof(int));
+
 		switch (ElementType)
 		{
 			case ElementTypes::Bar: // Bar element
@@ -346,20 +360,42 @@ void COutputter::OutputElementStress()
 			case ElementTypes::C3D20R: // C3D20R element
 				*this << "  ELEMENT                         STRESS" << endl
 					<< "  NUMBER		S11			S22		  S33		S23		S13		S12     " << endl;
-
-				double Stress[6];
+				
+				double Stress[48];			
 
 				for (unsigned int Ele = 0; Ele < NUME; Ele++)
 				{
 					CElement& Element = EleGrp[Ele];
+					CNode** Nodes = Element.GetNodes();
 					Element.ElementStress(Stress, Displacement);
-
-					*this << setw(5) << Ele + 1 << setw(18) << Stress[0] << setw(18) << Stress[1]
-						<< setw(18) << Stress[2] << setw(18) << Stress[3] << setw(18) << Stress[4] 
-						<< setw(18) << Stress[5] << endl;
+					for (unsigned int i = 0; i < 8; i++)
+					{
+						int I = Nodes[i]->NodeNumber;
+						for (unsigned int j = 0; j < 6; j++)
+						{
+							STRESS[I][j] += Stress[6 * i + j];
+						}
+						count[I]++;
+					}
 				}
 
+				for (unsigned int Ele = 0; Ele < NUME; Ele++)
+				{
+					CElement& Element = EleGrp[Ele];
+					CNode** Nodes = Element.GetNodes();
+					for (unsigned int i = 0; i < 8; i++)
+					{
+						int I = Nodes[i]->NodeNumber;
+						*this << setw(5) << Ele + 1 << setw(18) << STRESS[I][0]/count[I] << setw(18) << STRESS[I][1] / count[I]
+							<< setw(18) << STRESS[I][2] / count[I] << setw(18) << STRESS[I][3] / count[I] 
+							<< setw(18) << STRESS[I][4] / count[I] << setw(18) << STRESS[I][5] / count[I] << endl;
+					}
+				}				
+
 				*this << endl;
+
+				delete[] STRESS;
+				delete[] count;
 
 				break;
 

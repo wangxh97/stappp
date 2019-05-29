@@ -349,33 +349,25 @@ void CC3D20R::ElementStress(double* stress, double* Displacement)
 		{ 0, 1, -1 }
 	};
 
-	double b = 0.795822426;
-	double c = 0.758786911;
+	double e = 0.577350269189626;
 
-	double GC[14][3] =
+	double GC[8][3] =
 	{
-		{ -b, 0, 0 },
-		{ b, 0, 0 },
-		{ 0, -b, 0 },
-		{ 0, b, 0 },
-		{ 0, 0, -b },
-		{ 0, 0, b },
-		{ -c, -c, -c },
-		{ c, -c, -c },
-		{ -c, c, -c },
-		{ -c, -c, c },
-		{ c, c, -c },
-		{ c, -c, c },
-		{ -c, c, c },
-		{ c, c, c }
+		{ e, e, e },
+		{ -e, e, e },
+		{ -e, -e, e },
+		{ e, -e, e },
+		{ e, e, -e },
+		{ -e, e, -e },
+		{ -e, -e, -e },
+		{ e, -e, -e },
 	};
 
-	double GW1 = 0.886426593;
-	double GW2 = 0.335180055;
+	double GW1 = 1;
 
-	double GW[14] = { GW1, GW1, GW1, GW1, GW1, GW1, GW2, GW2 ,GW2 ,GW2 ,GW2 ,GW2 ,GW2 ,GW2 };
+	double GW[8] = { GW1, GW1, GW1, GW1, GW1, GW1, GW1, GW1 };
 
-	double S[6][60] = { 0 };
+	double S[8][6] = { 0 };
 	double D_SHAPE[3][20];		//  Derivative of shape function
 	double JACOBI[3][3];
 	double JACOBI_DET;
@@ -387,7 +379,7 @@ void CC3D20R::ElementStress(double* stress, double* Displacement)
 	double GY;
 	double GZ;
 
-	for (unsigned int I = 0; I < 14; I++)
+	for (unsigned int I = 0; I < 8; I++)
 	{
 		clear(*D_SHAPE, 60);
 		for (unsigned int J = 0; J < 8; J++)
@@ -475,14 +467,14 @@ void CC3D20R::ElementStress(double* stress, double* Displacement)
 
 		for (unsigned int J = 0; J < 20; J++)
 		{
-			B[0][3 * J] = D_SHAPE_XY[0][J];
+			B[0][3 * J]     = D_SHAPE_XY[0][J];
 			B[1][3 * J + 1] = D_SHAPE_XY[1][J];
 			B[2][3 * J + 2] = D_SHAPE_XY[2][J];
 			B[3][3 * J + 1] = D_SHAPE_XY[2][J];
 			B[3][3 * J + 2] = D_SHAPE_XY[1][J];
-			B[4][3 * J] = D_SHAPE_XY[2][J];
+			B[4][3 * J]     = D_SHAPE_XY[2][J];
 			B[4][3 * J + 2] = D_SHAPE_XY[0][J];
-			B[5][3 * J] = D_SHAPE_XY[1][J];
+			B[5][3 * J]     = D_SHAPE_XY[1][J];
 			B[5][3 * J + 1] = D_SHAPE_XY[0][J];
 		}
 
@@ -490,21 +482,47 @@ void CC3D20R::ElementStress(double* stress, double* Displacement)
 		{
 			for (unsigned int j = 0; j < 60; j++)
 			{
-				for (unsigned int k = 0; k < 6; k++)
+				if (LocationMatrix_[j])
 				{
-					S[i][j] += D[i][k] * B[k][j] / 14;		// mean DB^e
+					for (unsigned int k = 0; k < 6; k++)
+					{
+						S[I][i] += D[i][k] * B[k][j] * Displacement[LocationMatrix_[j] - 1];
+					}
 				}
+			}
+		}
+
+	}
+
+	double a = (5 + 3 * 1.732) / 4;
+	double b = -(1.732 + 1) / 4;
+	double c = (1.732 - 1) / 4;
+	double d = (5 - 3 * 1.732) / 4;
+
+	double T[8][8] = 
+	{
+		{a,b,c,b,b,c,d,c},
+		{b,a,b,c,c,b,c,d},
+		{c,b,a,b,d,c,b,c},
+		{b,c,b,a,c,d,c,b},
+		{b,c,b,a,c,d,c,b},
+		{c,b,c,d,b,a,b,c},
+		{d,c,b,c,c,b,a,b},
+		{c,d,c,b,b,c,b,a}
+	};
+
+	clear(stress, 48);
+
+	for (unsigned int i = 0; i < 8; i++)
+	{
+		for (unsigned int j = 0; j < 6; j++)
+		{
+			for (unsigned int k = 0; k < 8; k++)
+			{
+				stress[6 * i + j] += T[i][k] * S[k][j];
 			}
 		}
 	}
 
-	clear(stress, 6);
-	for (unsigned int i = 0; i < 6; i++)
-	{
-		for (unsigned int j = 0; j < 60; j++)
-		{
-			if (LocationMatrix_[j])
-				stress[i] += S[i][j] * Displacement[LocationMatrix_[j] - 1];
-		}
-	}
+
 }
