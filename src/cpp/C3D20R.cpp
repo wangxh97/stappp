@@ -140,31 +140,23 @@ void CC3D20R::ElementStiffness(double* Matrix)
 		{0, 1, -1}
 	};
 
-	double b = 0.795822426;
-	double c = 0.758786911;
+	double e = 0.577350269189626;
 
-	double GC[14][3] =			// Harmer integrate points
+	double GC[8][3] =
 	{
-		{-b, 0, 0},
-		{b, 0, 0},
-		{0, -b, 0},
-		{0, b, 0},
-		{0, 0, -b},
-		{0, 0, b},
-		{-c, -c, -c},
-		{c, -c, -c},
-		{-c, c, -c},
-		{-c, -c, c},
-		{c, c, -c},
-		{c, -c, c},
-		{-c, c, c},
-		{c, c, c}
+		{ e, e, e },
+		{ -e, e, e },
+		{ -e, -e, e },
+		{ e, -e, e },
+		{ e, e, -e },
+		{ -e, e, -e },
+		{ -e, -e, -e },
+		{ e, -e, -e },
 	};
 
-	double GW1 = 0.886426593;			// Harmer integrate weight
-	double GW2 = 0.335180055;
+	double GW1 = 1;
 
-	double GW[14] = { GW1, GW1, GW1, GW1, GW1, GW1, GW2, GW2 ,GW2 ,GW2 ,GW2 ,GW2 ,GW2 ,GW2 };
+	double GW[8] = { GW1, GW1, GW1, GW1, GW1, GW1, GW1, GW1 };
 
 	C3D20RMaterial* material_ = dynamic_cast<C3D20RMaterial*>(ElementMaterial_);	// Pointer to material of the element
 	double G = material_->E / (2 * (1 + material_->nu));
@@ -191,7 +183,7 @@ void CC3D20R::ElementStiffness(double* Matrix)
 	double GY;
 	double GZ;
 
-	for (unsigned int I = 0; I < 14; I++)
+	for (unsigned int I = 0; I < 8; I++)
 	{
 		clear(*D_SHAPE, 60);
 		for (unsigned int J = 0; J < 8; J++)		// Caculate corner points derivative of shape function
@@ -298,10 +290,9 @@ void CC3D20R::ElementStiffness(double* Matrix)
 				{
 					for (unsigned int J4 = 0; J4 < 6; J4++)
 					{
-						Matrix[J1*(J1 + 1) / 2 + J2] += B[J3][J2] * D[J3][J4] * B[J4][J1];
+						Matrix[J1*(J1 + 1) / 2 + J2] += B[J3][J2] * D[J3][J4] * B[J4][J1] * JACOBI_DET * GW[I];
 					}
 				}
-				Matrix[J1*(J1 + 1) / 2 + J2] *=  JACOBI_DET*GW[I];
 			}
 		}
 	}

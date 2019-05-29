@@ -358,7 +358,7 @@ void COutputter::OutputElementStress()
 				break;
 
 			case ElementTypes::C3D20R: // C3D20R element
-				*this << "  ELEMENT                         STRESS" << endl
+				*this << "  NODE                         STRESS" << endl
 					<< "  NUMBER		S11			S22		  S33		S23		S13		S12     " << endl;
 				
 				double Stress[48];			
@@ -379,17 +379,15 @@ void COutputter::OutputElementStress()
 					}
 				}
 
-				for (unsigned int Ele = 0; Ele < NUME; Ele++)
+				for (unsigned int I = 1; I < NUMNP + 1; I++)
 				{
-					CElement& Element = EleGrp[Ele];
-					CNode** Nodes = Element.GetNodes();
-					for (unsigned int i = 0; i < 8; i++)
+					if (count[I])
 					{
-						int I = Nodes[i]->NodeNumber;
-						*this << setw(5) << Ele + 1 << setw(18) << STRESS[I][0]/count[I] << setw(18) << STRESS[I][1] / count[I]
-							<< setw(18) << STRESS[I][2] / count[I] << setw(18) << STRESS[I][3] / count[I] 
+						*this << setw(5) << I << setw(18) << STRESS[I][0] / count[I] << setw(18) << STRESS[I][1] / count[I]
+							<< setw(18) << STRESS[I][2] / count[I] << setw(18) << STRESS[I][3] / count[I]
 							<< setw(18) << STRESS[I][4] / count[I] << setw(18) << STRESS[I][5] / count[I] << endl;
 					}
+					
 				}				
 
 				*this << endl;
