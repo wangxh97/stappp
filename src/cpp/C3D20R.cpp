@@ -144,14 +144,14 @@ void CC3D20R::ElementStiffness(double* Matrix)
 
 	double GC[8][3] =
 	{
-		{ e, e, e },
 		{ -e, e, e },
 		{ -e, -e, e },
-		{ e, -e, e },
-		{ e, e, -e },
-		{ -e, e, -e },
 		{ -e, -e, -e },
+		{ -e, e, -e },
+		{ e, e, e },
+		{ e, -e, e },
 		{ e, -e, -e },
+		{ e, e, -e },
 	};
 
 	double GW1 = 1;
@@ -278,7 +278,7 @@ void CC3D20R::ElementStiffness(double* Matrix)
 			B[3][3 * J + 2] = D_SHAPE_XY[1][J];
 			B[4][3 * J]     = D_SHAPE_XY[2][J];
 			B[4][3 * J + 2] = D_SHAPE_XY[0][J];
-			B[5][3 * J ]    = D_SHAPE_XY[1][J];
+			B[5][3 * J]     = D_SHAPE_XY[1][J];
 			B[5][3 * J + 1] = D_SHAPE_XY[0][J];
 		}
 
@@ -290,7 +290,7 @@ void CC3D20R::ElementStiffness(double* Matrix)
 				{
 					for (unsigned int J4 = 0; J4 < 6; J4++)
 					{
-						Matrix[J1*(J1 + 1) / 2 + J2] += B[J3][J2] * D[J3][J4] * B[J4][J1] * JACOBI_DET * GW[I];
+						Matrix[J1*(J1 + 1) / 2 + J1 - J2] += B[J3][J2] * D[J3][J4] * B[J4][J1] * JACOBI_DET * GW[I];
 					}
 				}
 			}
@@ -344,14 +344,14 @@ void CC3D20R::ElementStress(double* stress, double* Displacement)
 
 	double GC[8][3] =
 	{
-		{ e, e, e },
 		{ -e, e, e },
 		{ -e, -e, e },
-		{ e, -e, e },
-		{ e, e, -e },
-		{ -e, e, -e },
 		{ -e, -e, -e },
+		{ -e, e, -e },
+		{ e, e, e },
+		{ e, -e, e },
 		{ e, -e, -e },
+		{ e, e, -e },
 	};
 
 	double GW1 = 1;
@@ -490,7 +490,7 @@ void CC3D20R::ElementStress(double* stress, double* Displacement)
 	double c = (1.732 - 1) / 4;
 	double d = (5 - 3 * 1.732) / 4;
 
-	double T[8][8] = 
+	double T[20][8] = 
 	{
 		{a,b,c,b,b,c,d,c},
 		{b,a,b,c,c,b,c,d},
@@ -499,12 +499,24 @@ void CC3D20R::ElementStress(double* stress, double* Displacement)
 		{b,c,b,a,c,d,c,b},
 		{c,b,c,d,b,a,b,c},
 		{d,c,b,c,c,b,a,b},
-		{c,d,c,b,b,c,b,a}
+		{c,d,c,b,b,c,b,a},
+		{ (a + b) / 2,(a + b) / 2,(b + c) / 2,(b + c) / 2,(b + c) / 2,(b + c) / 2,(c + d) / 2,(c + d) / 2 },
+		{ (b + c) / 2,(a + b) / 2,(a + b) / 2,(b + c) / 2,(c + d) / 2,(b + c) / 2,(b + c) / 2,(c + d) / 2 },
+		{ (b + c) / 2,(b + c) / 2,(a + b) / 2,(a + b) / 2,(c + d) / 2,(c + d) / 2,(b + c) / 2,(b + c) / 2 },
+		{ (a + b) / 2,(b + c) / 2,(b + c) / 2,(a + b) / 2,(b + c) / 2,(c + d) / 2,(c + d) / 2,(b + c) / 2 },
+		{ (b + c) / 2,(b + c) / 2,(b + c) / 2,(a + d) / 2,(b + c) / 2,(a + d) / 2,(b + c) / 2,(b + c) / 2 },
+		{ (c + d) / 2,(b + c) / 2,(b + c) / 2,(c + d) / 2,(b + c) / 2,(a + b) / 2,(a + b) / 2,(b + c) / 2 },
+		{ (c + d) / 2,(c + d) / 2,(b + c) / 2,(b + c) / 2,(b + c) / 2,(b + c) / 2,(a + b) / 2,(a + b) / 2 },
+		{ (b + c) / 2,(c + d) / 2,(b + c) / 2,(a + b) / 2,(b + c) / 2,(c + d) / 2,(b + c) / 2,(a + b) / 2 },
+		{ (a + b) / 2,(b + c) / 2,(b + c) / 2,(a + b) / 2,(b + c) / 2,(c + d) / 2,(c + d) / 2,(b + c) / 2 },
+		{ (b + c) / 2,(a + b) / 2,(b + c) / 2,(c + d) / 2,(b + c) / 2,(a + b) / 2,(b + c) / 2,(c + d) / 2 },
+		{ (c + d) / 2,(b + c) / 2,(a + b) / 2,(b + c) / 2,(c + d) / 2,(b + c) / 2,(a + b) / 2,(b + c) / 2 },
+		{ (b + c) / 2,(c + d) / 2,(b + c) / 2,(a + b) / 2,(b + c) / 2,(c + d) / 2,(b + c) / 2,(a + b) / 2 },
 	};
 
-	clear(stress, 48);
+	clear(stress, 120);
 
-	for (unsigned int i = 0; i < 8; i++)
+	for (unsigned int i = 0; i < 20; i++)
 	{
 		for (unsigned int j = 0; j < 6; j++)
 		{

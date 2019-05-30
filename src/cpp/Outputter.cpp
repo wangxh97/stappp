@@ -361,29 +361,29 @@ void COutputter::OutputElementStress()
 				*this << "  NODE                         STRESS" << endl
 					<< "  NUMBER		S11			S22		  S33		S23		S13		S12     " << endl;
 				
-				double Stress[48];			
+				double Stress[120];			
 
 				for (unsigned int Ele = 0; Ele < NUME; Ele++)
 				{
 					CElement& Element = EleGrp[Ele];
 					CNode** Nodes = Element.GetNodes();
 					Element.ElementStress(Stress, Displacement);
-					for (unsigned int i = 0; i < 8; i++)
+					for (unsigned int i = 0; i < 20; i++)
 					{
 						int I = Nodes[i]->NodeNumber;
 						for (unsigned int j = 0; j < 6; j++)
 						{
-							STRESS[I][j] += Stress[6 * i + j];
+							STRESS[I - 1][j] += Stress[6 * i + j];
 						}
-						count[I]++;
+						count[I - 1]++;
 					}
 				}
 
-				for (unsigned int I = 1; I < NUMNP + 1; I++)
+				for (unsigned int I = 0; I < NUMNP; I++)
 				{
 					if (count[I])
 					{
-						*this << setw(5) << I << setw(18) << STRESS[I][0] / count[I] << setw(18) << STRESS[I][1] / count[I]
+						*this << setw(5) << I + 1 << setw(18) << STRESS[I][0] / count[I] << setw(18) << STRESS[I][1] / count[I]
 							<< setw(18) << STRESS[I][2] / count[I] << setw(18) << STRESS[I][3] / count[I]
 							<< setw(18) << STRESS[I][4] / count[I] << setw(18) << STRESS[I][5] / count[I] << endl;
 					}
